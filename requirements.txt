@@ -1,0 +1,9 @@
+openai
+requests
+beautifulsoup4
+colorama
+anthropic
+pygments
+tavily
+Pillow
+python-dotenv
