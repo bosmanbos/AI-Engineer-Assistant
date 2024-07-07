@@ -4,6 +4,6 @@ beautifulsoup4
 colorama
 anthropic
 pygments
-tavily
+tavily-python
 Pillow
 python-dotenv
