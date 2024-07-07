@@ -22,7 +22,7 @@ This project implements an AI-powered assistant designed to autonomously interac
 ## Setup
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/AI-Powered-Engineering-Assistant.git
+    git clone https://github.com/bosmanbos/AI-Powered-Engineering-Assistant.git
     ```
 2. Navigate to the project directory:
     ```bash
