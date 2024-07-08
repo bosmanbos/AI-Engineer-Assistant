@@ -1,4 +1,7 @@
 import os
+import sys
+import time
+import select
 import subprocess
 import platform
 import webbrowser
@@ -283,6 +286,26 @@ def execute_tool(tool_name, tool_input):
         return f"Unknown tool: {tool_name}"
     
     
+def get_input(prompt=""):
+    print(prompt, end='', flush=True)
+    lines = []
+    while True:
+        line = sys.stdin.readline()
+        if not line.strip():  # Empty line signals end of input
+            break
+        lines.append(line)
+        
+        # Check if there's more input immediately available
+        if not sys.stdin.isatty():  # If input is not from a terminal (e.g., piped input)
+            time.sleep(0.1)  # Short delay to collect any remaining input
+            if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+                continue
+            else:
+                break
+    
+    return ''.join(lines).strip()
+    
+    
 def encode_image_to_base64(image_path):
     try:
         with Image.open(image_path) as img:
@@ -346,11 +369,10 @@ def chat_with_claude(user_input, image_path=None):
         return "Sorry, there is an error communication with the Claude API at this time, please try again!"
     
     assistant_response = ""
-    
+     
     for content_block in response.content:
         if content_block.type == "text":
             assistant_response += content_block.text
-            print_colored(f"\nClaude: {content_block.text}", CLAUDE_COLOR)
         elif content_block.type == "tool_use":
             tool_name = content_block.name
             tool_input = content_block.input
@@ -387,11 +409,9 @@ def chat_with_claude(user_input, image_path=None):
                 for tool_content_block in tool_response.content:
                     if tool_content_block.type == "text": 
                         assistant_response += tool_content_block.text
-                        print_colored(f"\nClaude: {tool_content_block.text}", CLAUDE_COLOR)
             except Exception as e:
                 print_colored(f"Error in tool response: {str(e)}", TOOL_COLOR)
                 assistant_response += "\nI encountered an error while processing the tool result, please try again!"
-                
                 
     if assistant_response:
         conversation_history.append({"role": "assistant", "content": assistant_response})
@@ -421,8 +441,8 @@ def process_and_display_result(response):
                         print_colored(part, CLAUDE_COLOR)   
         else:
             print_colored(response, CLAUDE_COLOR)
-            
-            
+                    
+                
 def main():
     global conversation_history
     print_colored("Welcome to Your Local Claude Chat With Image Support!", CLAUDE_COLOR)
@@ -430,23 +450,24 @@ def main():
     print_colored("Type 'image' to include an image in your message.", CLAUDE_COLOR)
     print_colored("You can also ask to run python scripts! - (Type 'Run {script_name}')", CLAUDE_COLOR)
     print_colored("Supported script types: Python (.py), JavaScript (.js), Bash (.sh, .bash), PowerShell (.ps1), HTML (.html)", CLAUDE_COLOR)
+    print_colored("You can now paste multi-line text directly. Press Enter twice to submit.", CLAUDE_COLOR)
     
     while True:
-        user_input = input(f"\n\n{USER_COLOR}You: {Style.RESET_ALL}")
+        user_input = get_input(f"\n{USER_COLOR}You: {Style.RESET_ALL}")
         
         if user_input.lower() == 'exit':
             print_colored("Thanks for chatting, see you soon!", CLAUDE_COLOR)
             break
         
         if user_input.lower() == 'image':
-            image_path = input(f"{USER_COLOR}Drag and drop your image here: {Style.RESET_ALL}")
+            image_path = get_input(f"{USER_COLOR}Drag and drop your image here: {Style.RESET_ALL}")
             
             # Remove quotes and normalize path
             image_path = image_path.strip().strip("\"'")
             image_path = os.path.normpath(image_path)
             
             if os.path.isfile(image_path):
-                user_input = input(f"{USER_COLOR}You (prompt for image): {Style.RESET_ALL}")
+                user_input = get_input(f"{USER_COLOR}You (prompt for image): {Style.RESET_ALL}")
                 response = chat_with_claude(user_input, image_path)
                 process_and_display_result(response)
             else:
@@ -458,7 +479,7 @@ def main():
             script = find_script(script_path)
             
             if script is None:
-                print_colored(f"No script matching 'script_name' found at '{full_path}'.", CLAUDE_COLOR)
+                print_colored(f"No script matching '{script_path}' found at '{full_path}'.", CLAUDE_COLOR)
             else:
                 print_colored(f"Attempting to run: {script}", CLAUDE_COLOR)
                 result = execute_script(script)
@@ -466,7 +487,6 @@ def main():
         else:
             response = chat_with_claude(user_input)
             process_and_display_result(response)
-            
             
             
 if __name__ == "__main__":
