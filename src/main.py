@@ -290,8 +290,8 @@ def get_input(prompt=""):
     print(prompt, end='', flush=True)
     lines = []
     while True:
-        line = sys.stdin.readline()
-        if not line.strip():  # Empty line signals end of input
+        line = sys.stdin.readline().rstrip('\n')
+        if not line and lines:  # Empty line and we have previous input
             break
         lines.append(line)
         
@@ -303,7 +303,7 @@ def get_input(prompt=""):
             else:
                 break
     
-    return ''.join(lines).strip()
+    return '\n'.join(lines)
     
     
 def encode_image_to_base64(image_path):
@@ -451,6 +451,7 @@ def main():
     print_colored("You can also ask to run python scripts! - (Type 'Run {script_name}')", CLAUDE_COLOR)
     print_colored("Supported script types: Python (.py), JavaScript (.js), Bash (.sh, .bash), PowerShell (.ps1), HTML (.html)", CLAUDE_COLOR)
     print_colored("You can now paste multi-line text directly. Press Enter twice to submit.", CLAUDE_COLOR)
+    print_colored("You can now paste multi-line text directly. Press Enter on an empty line to submit.", CLAUDE_COLOR)
     
     while True:
         user_input = get_input(f"\n{USER_COLOR}You: {Style.RESET_ALL}")
