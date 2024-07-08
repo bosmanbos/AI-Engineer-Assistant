@@ -41,7 +41,7 @@ This project implements an AI-powered assistant designed to autonomously interac
 ## Usage
 1. Run the main script:
     ```bash
-    python main.py
+    python ./src/main.py
     ```
 2. Follow the prompts in the terminal to interact with the assistant.
     * Type your queries or commands.
